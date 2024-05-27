@@ -1,0 +1,59 @@
+function parseToCSV() {
+
+  const productMap = jsonFile.items.item.reduce((map, product) => {
+    map[product.INDEKS] = product;
+    return map;
+  }, {});
+  const dataForCSV = databaseItems
+    .filter((item) => {
+      const sku = item.supplier_sku
+      const product = productMap[sku]
+      return product && product.KATEGORIE.includes("TECHNIKA MOCOWAŃ")
+    })
+    .map((item) => {
+      const sku = item.supplier_sku
+      const product = productMap[sku]
+      return {
+        sku: product.INDEKS,
+        name: product.NAZWA,
+        ean: product.EAN,
+        price_regular: product.CENA_KLIENT,
+        price_by_min_order: product.CENA_KLIENTA_MIN,
+        stock: product.STAN_NA_MAGAZYNIE,
+        min_order: product.MIN_ZAM,
+        unit: product.JEDNOSTKA_MIARY,
+        unit_min: product.JEDNOSTKA_MIARY_MIN,
+        package: product.OPAKOWANIE,
+        KATEGORIE: product.KATEGORIE      
+      };
+  });
+
+  const headers = [
+    'sku',
+    'name',
+    'ean',
+    'price_regular',
+    'price_by_min_order',
+    'stock',
+    'min_order',
+    'unit',
+    'unit_min',
+    'package',
+    'KATEGORIE'
+  ];
+
+  generateCSV(dataForCSV, headers, './final/tanya.csv');
+}
+
+function generateCSV(data, headers, filename) {
+  console.log('data:', data);
+  const csvData = data
+    .map((row) =>
+      headers
+        .map((header) => row[header] || '')
+        .join('|')   
+    )
+    .join('\n');
+  const outputData = headers.join(',') + '\n' + csvData;
+  fs.writeFileSync(filename, outputData);
+}
